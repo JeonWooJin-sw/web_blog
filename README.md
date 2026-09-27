@@ -1,71 +1,65 @@
-# Django 이미지 블로그 (Mobile/Web Service Project) 
-by kiokahn@khu.ac.kr
+# web_blog - Django 이미지 블로그 + REST API
 
-텍스트 블로그 + 이미지 모델(./blog/models.py) 만 추가된 테스트용 코드입니다.
+모바일/웹서비스프로젝트 실습과제03 (2026-2)
 
-## 가상환경
+수업에서 받은 예제 코드(kiokahn/web_blog)를 내 계정으로 옮기고 PythonAnywhere에 배포한 것.
+텍스트 블로그에 이미지 필드가 붙어 있고, DRF로 `/api_root/Post/` API가 열려 있다.
 
-Django 프로젝트를 위한 가상환경 생성
+- 배포 주소 : https://woojin123123.pythonanywhere.com
+- 관리자 : /admin/
+- API root : /api_root/
+- Django 6.1.1 / DRF 3.18.1 / Python 3.13
+
+## 로컬 실행
+
 ```bash
-mkdir web-blog
-cd mysite
-python3 -m venv ./venv
-source ./venv/bin/activate # for linux or macos
-./venv/bin/activate.ps1 # for windows PowerShell
-./venv/bin/activate.bat # for windows CMD
-```
-
-MS Windows PowerShell을 사용 할 경우, 실행 정책 보호를 해제 하기위해 PowerShell을 관리자모드로 실행하여 아래를 실행합니다.
-```bash
-Set-ExecutionPolicy Unrestricted
-```
-
-실행 후 프로프트 확인 필요
-```
-(venv)$
-```
-
-## 라이브러리 설치
-```bash
+git clone https://github.com/JeonWooJin-sw/web_blog.git
+cd web_blog
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-```
-
-## DB 마이그레이션
-```bash
 python manage.py migrate
-```
-
-## 관리자 계정 생성
-```bash
 python manage.py createsuperuser
-```
-
-## 서버 실행
-```bash
 python manage.py runserver
 ```
 
-## 브라우저 
-관리자 접속 후 권한 획득 이후 "+" 버튼이 우 상단에 보여짐
+admin에서 로그인하면 메인 화면 오른쪽 위에 + 버튼이 생기고 글을 쓸 수 있다.
 
-관리자[http://127.0.0.1:8000/admin/]
-
-사용자[http://127.0.0.1:8000/]
-
-Api Root[http://127.0.0.1:8000/api_root/]
-
-
-## telnet 테스트
+## API로 글 쓰기 (curl)
 
 ```bash
-telnet 127.0.0.1 8000
+curl -X POST -H 'Accept: application/json' \
+  -F "author=1" \
+  -F "title=curl 테스트" \
+  -F "text=curl로 올린 글" \
+  -F "published_date=2026-09-28T18:00:00+09:00" \
+  -F "image=@media/images/pig.png;type=image/png" \
+  http://127.0.0.1:8000/api_root/Post/
 ```
 
-아래 "Host"의 경우 ".mysite/settings.py"파일 내 "ALLOWED_HOSTS"에 등록되지 않은 호스트는 http 400 error 응답 함 
-```
-GET /media/images/pig.png HTTP/1.1
-Host: 127.0.0.1
-User-Agent: Mozilla/5.0
+`published_date`를 안 넣으면 목록에 안 뜬다 (post_list가 published_date 기준으로 필터링함).
 
+## PythonAnywhere 배포 메모
 
+1. Bash 콘솔에서 `git clone` 후 `mkvirtualenv --python=python3.13 web_blog` → `pip install -r requirements.txt`
+2. `python manage.py migrate`, `createsuperuser`, `collectstatic`
+3. Web 탭 → Add a new web app → Manual configuration → Python 3.13
+4. Virtualenv 경로에 `/home/woojin123123/.virtualenvs/web_blog`
+5. WSGI 파일을 아래처럼 수정
+
+```python
+import os, sys
+path = os.path.expanduser('~/web_blog')
+if path not in sys.path:
+    sys.path.insert(0, path)
+os.environ['DJANGO_SETTINGS_MODULE'] = 'mysite.settings'
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
 ```
+
+6. Static files
+   - `/static/` → `/home/woojin123123/web_blog/staticfiles`
+   - `/media/` → `/home/woojin123123/web_blog/media`
+7. Reload
+
+https라서 admin 로그인할 때 CSRF 에러가 나길래 settings.py에 `CSRF_TRUSTED_ORIGINS` 추가함.

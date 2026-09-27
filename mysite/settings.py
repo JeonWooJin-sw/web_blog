@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', '10.0.2.2', '.pythonanywhere.com']
 
+# pythonanywhere(https)에서 admin 로그인 시 csrf 에러 나서 추가
+CSRF_TRUSTED_ORIGINS = ['https://*.pythonanywhere.com']
+
 
 # Application definition
 
